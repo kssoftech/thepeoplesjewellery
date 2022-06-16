@@ -1,0 +1,89 @@
+/**
+ * Sample React Native App
+ * https://github.com/facebook/react-native
+ *
+ * @format
+ * @flow strict-local
+ */
+
+import React from 'react';
+import {
+  StyleSheet,
+} from 'react-native';
+
+import Splash from './src/Screens/Splash';
+import Login from './src/Screens/Login';
+import Signup from './src/Screens/Signup';
+import { NavigationContainer, StackActions } from '@react-navigation/native';
+import { createNativeStackNavigator , cardStyleInterpolator} from '@react-navigation/native-stack';
+import PreSplash from './src/Screens/PreSplash';
+import UserRole from './src/Screens/UserRole';
+
+
+const Stack =  createNativeStackNavigator();
+const SlideFromTop = () => {
+  const progress = Animated.add(
+      props.current.progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [
+            -props.layouts.screen.height,
+            0,
+            -props.layouts.screen.height,
+          ],
+          extrapolate: 'clamp',
+      }),
+      props.next
+          ? props.next.progress.interpolate({
+              inputRange: [0, 1],
+              outputRange: [
+                -props.layouts.screen.height,
+                0,
+                -props.layouts.screen.height,
+              ],
+              extrapolate: 'clamp',
+          })
+          : 0
+  );
+}
+
+const App = () => {
+  return (
+    <NavigationContainer >
+      <Stack.Navigator initialRouteName='PreSplash'>
+        <Stack.Screen
+          name='PreSplash'
+          component={PreSplash}
+          options={{ headerShown: false , animation: 'none'}}
+       />
+        <Stack.Screen
+          name='Splash'
+          component={Splash}
+          options={{ headerShown: false , animation: 'none'}}
+       />
+        <Stack.Screen
+          name='Login'
+          component={Login}
+          options={{
+            headerShown: false,
+            getstureDirection: '' 
+
+          }}
+        />
+        <Stack.Screen
+          name='UserRole'
+          component={UserRole}
+          options={{headerShown: false , gestureEnabled: false }}
+        />
+        <Stack.Screen
+          name='Signup'
+          component={Signup}
+          options={{headerShown: false }}
+        />
+      </Stack.Navigator>  
+    </NavigationContainer>
+  );
+};
+
+const styles = StyleSheet.create({});
+
+export default App;
