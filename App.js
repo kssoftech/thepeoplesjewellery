@@ -18,6 +18,11 @@ import { NavigationContainer, StackActions } from '@react-navigation/native';
 import { createNativeStackNavigator , cardStyleInterpolator} from '@react-navigation/native-stack';
 import PreSplash from './src/Screens/PreSplash';
 import UserRole from './src/Screens/UserRole';
+import Home from './src/Screens/Home';
+import Welcome from './src/Screens/Welcome';
+import ForgotPassword from './src/Screens/ForgotPassword';
+import NewPassword from './src/Screens/NewPassword';
+import AccountVerification from './src/Screens/AccountVerification';
 
 
 const Stack =  createNativeStackNavigator();
@@ -70,6 +75,16 @@ const App = () => {
           }}
         />
         <Stack.Screen
+          name='ForgotPassword'
+          component={ForgotPassword}
+          options={{ headerShown: false, gestureEnabled: false}}
+        />
+        <Stack.Screen
+          name='NewPassword'
+          component={NewPassword}
+          options={{ headerShown: false, gestureEnabled: false}}
+        />
+        <Stack.Screen
           name='UserRole'
           component={UserRole}
           options={{headerShown: false , gestureEnabled: false }}
@@ -79,6 +94,22 @@ const App = () => {
           component={Signup}
           options={{headerShown: false }}
         />
+        <Stack.Screen
+          name='Verify'
+          component={AccountVerification}
+          options={{ headerShown: false, gestureEnabled: false}}
+        />
+        <Stack.Screen
+          name='Welcome'
+          component={Welcome}
+          options={{ headerShown: false, gestureEnabled: false}}
+        />
+        <Stack.Screen
+          name='Home'
+          component={Home}
+          options={{ headerShown: false, gestureEnabled: false}}
+        />
+
       </Stack.Navigator>  
     </NavigationContainer>
   );

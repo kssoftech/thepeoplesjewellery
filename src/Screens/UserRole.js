@@ -1,8 +1,9 @@
-import { StyleSheet, Image, View , TouchableOpacity , SafeAreaView , BackHandler} from 'react-native'
+import { StyleSheet, Image, View , TouchableOpacity ,  SafeAreaView , BackHandler} from 'react-native'
 import React , { useEffect} from 'react'
 import Title from '../Components/Title';
 import TitleContent from '../Components/TitleContent';
 import { NavigationContainer } from '@react-navigation/native';
+import Button from '../Components/Button';
 
 export default function UserRole({navigation}) {
 
@@ -22,16 +23,19 @@ export default function UserRole({navigation}) {
       />
       <Title style={styles.title} label="You are A?" />
 
-      <TouchableOpacity onPress={() => navigation.navigate('Signup',{companyType: 1} )}>
-          <Image style={styles.signIn} source={require('../Constants/Images/jeweller.png')}/>
+      <View>
+        <TouchableOpacity onPress={() => navigation.navigate('Signup', {userRole: 1})}>
+          <Button title="A Jeweller" />
         </TouchableOpacity>
+      </View>
 
-        <Title style={styles.title} label="Or" />
+      <Title style={styles.title} label="Or" />
 
-        <TouchableOpacity onPress={() => navigation.navigate('Signup',{companyType: 2} )}>
-          <Image style={styles.signIn} source={require('../Constants/Images/consumer.png')}/>
+      <View>
+        <TouchableOpacity onPress={() => navigation.navigate('Signup', {userRole: 2})}>
+          <Button title="A Consumer" />
         </TouchableOpacity>
-
+      </View>
     </SafeAreaView>
   );
 }

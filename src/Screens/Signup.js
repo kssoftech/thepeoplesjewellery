@@ -1,19 +1,19 @@
-import { StyleSheet,Button, Keyboard, View ,Image,Text,
-   Alert, SafeAreaView , TouchableOpacity  , KeyboardAvoidingView , BackHandler , Picker, ScrollView, TouchableWithoutFeedback} from 'react-native'
-import React ,{ useState}from 'react'
+import { StyleSheet, Keyboard, View ,Image,Text,
+   Alert, SafeAreaView , TouchableOpacity  , Modal , BackHandler , ScrollView, TouchableWithoutFeedback , ActivityIndicator} from 'react-native'
+import React ,{ useEffect, useState}from 'react'
 import CustomInput from '../Components/CustomInput'
 import Title from '../Components/Title';
 import TitleContent from '../Components/TitleContent';
 import CheckBox from '@react-native-community/checkbox';
 const globalStyle = require('../Constants/Styles/Style.js')
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
-import DropDown from 'react-native-paper-dropdown';
-import DropDownPicker from 'react-native-dropdown-picker';
 import { useFocusEffect } from '@react-navigation/native';
-import InputScrollView from 'react-native-input-scroll-view';
+import { Picker } from '@react-native-picker/picker';
+import Button from '../Components/Button';
+
 
 export default function Signup({route , navigation}) { 
-  const { companyType } = route.params;
+  const { userRole } = route.params;
   const [ firstName, setFirstName] = useState("");
   const [ firstNameE, setFirstNameE] = useState("");
   const [ lastName, setLastName] = useState("");
@@ -26,8 +26,7 @@ export default function Signup({route , navigation}) {
   const [emailE , setEmailE ] = useState("");
   const [companyName , setCompanyName] = useState("");
   const [companyNameE , setCompanyNameE] = useState("");
-  const [companyTypes , setCompanyTypes] = useState("");
-  const [companyTypesE , setCompanyTypesE] = useState("");
+  const [companyTypes , setCompanyTypes] = useState([]);
   const [pincode, setPincode] = useState("");
   const [pincodeE, setPincodeE] = useState("");
   const [state , setState] = useState("");
@@ -39,8 +38,10 @@ export default function Signup({route , navigation}) {
   const [cPassword, setCpassword] = useState("");
   const [cPasswordE, setCpasswordE] = useState("");
   const [isSelected, setSelection] = useState(false);
-  const [drop , setDrop ] = useState("")
-  const [selectedLanguage, setSelectedLanguage] = useState();
+  const [isLoading, setLoading] = useState(false);
+  const [selectedValue, setSelectedValue] = useState('');
+  const [productDetails , setproductDetails] = useState([]);
+  const [modalVisible , setModalVisible] = useState(false);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -67,10 +68,53 @@ export default function Signup({route , navigation}) {
     }, []),
   );
 
+  const onPrivacyHandler = () =>{
+    setModalVisible(true)
+  }
+
+  const renderProductList = () => {
+    return productDetails.map((product) => {
+      return <Picker.Item label={product.companyType} value={product.Id} key={product.Id}/>
+    })
+  }
+
+  useEffect(()=>{
+   getCompanyTypes()
+  }, [])
+
+  const getCompanyTypes = async () =>{
+    try {
+      const response = await fetch('https://mchi.org.in/TPJ/api/customerType.php?action=GET');
+      const json = await response.json();
+      console.log(json.result)
+      setproductDetails(json?.result);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
 
   const handleSubmit = () =>{
-    if (firstName.length === 0) {
-      setFirstNameE("required");
+    console.log( firstName , lastName , mobNo , whatsAppNO , email , pincode ,companyName , state , city , cPassword , selectedValue )
+    if (firstName.length === 0 || lastName.length === 0 || 
+      mobNo.length === 0  || whatsAppNO.length === 0 || 
+      email.length === 0 || pincode.length === 0 ||
+      state.length === 0 || city.length === 0 || nPassword.length === 0 ||
+      cPassword.length === 0
+      ) {
+      setFirstNameE("required")
+      setLastNameE("required")
+      setMobNoE("required")
+      setWhatsAppNoE("required")
+      setEmailE("required")
+      setCompanyNameE("required")
+      setPincodeE("required")
+      setStateE("required")
+      setCityE("required")
+      setNpasswordE("required")
+      setCpasswordE("required")
     } 
     else if ( lastName.length === 0){
       setLastNameE("required")
@@ -83,12 +127,6 @@ export default function Signup({route , navigation}) {
     }
     else if ( email.length === 0){
       setEmailE("required")
-    }
-    else if ( companyName.length === 0){
-      setCompanyNameE("required")
-    }
-    else if ( companyTypes.length === 0){
-      setCompanyTypesE("required")
     }
     else if ( pincode.length === 0){
       setPincodeE("required")
@@ -107,7 +145,8 @@ export default function Signup({route , navigation}) {
     } 
     else {
       if (nPassword !== cPassword ) {
-        Alert.alert("Password Doesn't Match")
+        setNpasswordE("New Password and Confirm Password are not same.")
+        setCpasswordE("New Password and Confirm Password are not same.")
       } else {
           SignupAPI()
       }
@@ -115,8 +154,8 @@ export default function Signup({route , navigation}) {
     } 
   }
 
+  const SignupAPI = async () =>{
 
-  const SignupAPI = () =>{
     setFirstName("")
     setLastName("")
     setMobNo("")
@@ -130,209 +169,259 @@ export default function Signup({route , navigation}) {
     setCity("")
     setNpassword("")
     setCpassword("")
-    var requestOptions = {
-      method: 'GET',
-      redirect: 'follow'
-    };
-    
-    fetch(`https://mchi.org.in/TPJ/api/customerSignup.php?token=3d30b5a19f5e1291c5e1959d00e40029&actionName=INSERT&customerType=${companyType}&firstName=${firstName}&lastName=${lastName}&mobileNo=${mobNo}&what${whatsAppNO}&companyName=${companyName}&emaiIId=${email}&companyType=${companyType}&pincode=${pincode}&state=${state}&city=${city}&confirmPassword=${cPassword}&fcmToken=0`, requestOptions)
-      .then(response => response.json())
-      .then(result => Alert.alert(result.message))
-      .catch(error => Alert.alert(error.message));
+    setLoading(true)
+      try {
+        const response = await fetch(`https://mchi.org.in/TPJ/api/customerSignup.php?token=3d30b5a19f5e1291c5e1959d00e40029&actionName=INSERT&customerType=${userRole}&firstName=${firstName}&lastName=${lastName}&mobileNo=${mobNo}&what${whatsAppNO}&companyName=${companyName}&emaiIId=${email}&companyType=${selectedValue}&pincode=${pincode}&state=${state}&city=${city}&confirmPassword=${cPassword}&fcmToken=0`);
+        const jsonS = await response.json();
+        console.log(jsonS.result)
+        //console.log(Alert.alert(json.message))
+        if (jsonS.status == true) {
+          navigation.navigate('Welcome' , { result: jsonS?.result})
+        } else{
+          Alert.alert(jsonS?.message)
+        }
+       
+      } catch (error) {
+        Alert.alert(error.message)
+      } finally {
+        setLoading(false);
+      } 
   }
-
 
   return (
     <SafeAreaView style={{backgroundColor: 'white', flex: 1}}>
-      <View style={{marginTop: '10%'}}>
-        <Image
-          style={{
-            width: '100%',
-            height: 50,
-          }}
-          source={require('../Constants/Images/tpjlogo.png')}
+      <View>
+        <View style={{marginTop: '10%'}}>
+          <Image
+            style={{
+              width: '100%',
+              height: 50,
+            }}
+            source={require('../Constants/Images/tpjlogo.png')}
+          />
+        </View>
+        <View style={styles.titleContainer}>
+          <Title style={styles.title} label="Sign Up" />
+        </View>
+        <TitleContent
+          style={styles.titleContent}
+          content={`Before you Sign Up, we would \n like to know that`}
         />
-      </View>
-      <View style={styles.titleContainer}>
-        <Title style={styles.title} label="Sign Up" />
-      </View>
-      <TitleContent
-        style={styles.titleContent}
-        content={`Before you Sign Up, we would \n like to know that`}
-      />
 
-      <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}>   
-      <ScrollView >
-
-          <View>
-            <CustomInput
-              style={globalStyle.customInput}
-              value={firstName}
-              onChangeText={text => setFirstName(text)}
-              placeholder={'First Name'}
-            />
-            {firstNameE.length > 0 && firstName.length === 0 && (
-              <Text style={styles.error}>{firstNameE}</Text>
-            )}
-          </View>
-          <View>
-            <CustomInput
-              style={globalStyle.customInput}
-              value={lastName}
-              onChangeText={text => setLastName(text)}
-              placeholder={'Last Name'}
-            />
-            {lastNameE.length > 0 && lastName.length === 0 && (
-              <Text style={styles.error}>{lastNameE}</Text>
-            )}
-          </View>
-          <View>
-            <CustomInput
-              style={globalStyle.customInput}
-              value={mobNo}
-              onChangeText={text => setMobNo(text)}
-              placeholder={'Mobile No.'}
-              keyboardType="number-pad"
-            />
-            {mobNoE.length > 0 && mobNo.length === 0 && (
-              <Text style={styles.error}>{mobNoE}</Text>
-            )}
-          </View>
-          <View>
-            <CustomInput
-              style={globalStyle.customInput}
-              value={whatsAppNO}
-              onChangeText={text => setWhatsAppNo(text)}
-              placeholder={'Whats App Mobile No.'}
-              keyboardType="number-pad"
-            />
-            {whatsAppNOE.length > 0 && whatsAppNO.length === 0 && (
-              <Text style={styles.error}>{whatsAppNOE}</Text>
-            )}
-          </View>
-          <View>
-            <CustomInput
-              style={globalStyle.customInput}
-              value={email}
-              onChangeText={text => setEmail(text)}
-              placeholder={'Email Id'}
-            />
-            {emailE.length > 0 && email.length === 0 && (
-              <Text style={styles.error}>{emailE}</Text>
-            )}
-          </View>
-          {companyType === 1 && (
+        <View style={{height: '100%', width: '100%', backgroundColor: '#fff'}}>
+          <KeyboardAwareScrollView>
             <View>
               <CustomInput
                 style={globalStyle.customInput}
-                value={companyName}
-                onChangeText={text => setCompanyName(text)}
-                placeholder={'Company Name'}
+                value={firstName}
+                onChangeText={text => setFirstName(text)}
+                placeholder={'First Name'}
               />
-              {companyNameE.length > 0 && companyName.length === 0 && (
-                <Text style={styles.error}>{companyNameE}</Text>
+              {firstNameE.length > 0 && firstName.length === 0 && (
+                <Text style={styles.error}>{firstNameE}</Text>
               )}
             </View>
-          )}
-          {companyType === 1 && (
             <View>
               <CustomInput
                 style={globalStyle.customInput}
-                value={companyTypes}
-                onChangeText={text => setCompanyTypes(text)}
-                placeholder={'Company Type'}
+                value={lastName}
+                onChangeText={text => setLastName(text)}
+                placeholder={'Last Name'}
               />
-              {companyTypesE.length > 0 && companyTypes.length === 0 && (
-                <Text style={styles.error}>{companyTypesE}</Text>
+              {lastNameE.length > 0 && lastName.length === 0 && (
+                <Text style={styles.error}>{lastNameE}</Text>
               )}
             </View>
-          )}
-          <View>
-            <CustomInput
-              style={globalStyle.customInput}
-              value={pincode}
-              onChangeText={text => setPincode(text)}
-              placeholder={'Pincode'}
-              keyboardType="number-pad"
-            />
-            {pincodeE.length > 0 && pincode.length === 0 && (
-              <Text style={styles.error}>{pincodeE}</Text>
+            <View>
+              <CustomInput
+                style={globalStyle.customInput}
+                value={mobNo}
+                onChangeText={text => setMobNo(text)}
+                placeholder={'Mobile No.'}
+                keyboardType="number-pad"
+              />
+              {mobNoE.length > 0 && mobNo.length === 0 && (
+                <Text style={styles.error}>{mobNoE}</Text>
+              )}
+            </View>
+            <View>
+              <CustomInput
+                style={globalStyle.customInput}
+                value={whatsAppNO}
+                onChangeText={text => setWhatsAppNo(text)}
+                placeholder={'Whats App Mobile No.'}
+                keyboardType="number-pad"
+              />
+              {whatsAppNOE.length > 0 && whatsAppNO.length === 0 && (
+                <Text style={styles.error}>{whatsAppNOE}</Text>
+              )}
+            </View>
+            {
+              <Modal
+                transparent={true}
+                visible={modalVisible}
+                backdropColor={'red'}
+                backdropOpacity={1}>
+                {modalVisible && 
+                <View style={styles.modal}>
+                
+                </View>}
+              </Modal>
+            }
+            <View>
+              <CustomInput
+                style={globalStyle.customInput}
+                value={email}
+                onChangeText={text => setEmail(text)}
+                placeholder={'Email Id'}
+              />
+              {emailE.length > 0 && email.length === 0 && (
+                <Text style={styles.error}>{emailE}</Text>
+              )}
+            </View>
+            {userRole === 1 && (
+              <View>
+                <CustomInput
+                  style={globalStyle.customInput}
+                  value={companyName}
+                  onChangeText={text => setCompanyName(text)}
+                  placeholder={'Company Name'}
+                />
+                {companyNameE.length > 0 && companyName.length === 0 && (
+                  <Text style={styles.error}>{companyNameE}</Text>
+                )}
+              </View>
             )}
-          </View>
-          <View>
-            <CustomInput
-              style={globalStyle.customInput}
-              value={state}
-              onChangeText={text => setState(text)}
-              placeholder={'State'}
-            />
-            {stateE.length > 0 && state.length === 0 && (
-              <Text style={styles.error}>{stateE}</Text>
+            {userRole === 1 && (
+              <View
+                style={{
+                  borderRadius: 6,
+                  borderWidth: 1,
+                  borderColor: 'gray',
+                  backgroundColor: '#fff',
+                  margin: 10,
+                  height: 45,
+                  justifyContent: 'center',
+                  shadowColor: '#000',
+                  shadowOffset: {width: 1, height: 1},
+                  shadowOpacity: 0.2,
+                }}>
+                <Picker
+                  selectedValue={selectedValue}
+                  //style={{ }}
+                  onValueChange={(itemValue, itemIndex) => {
+                    setSelectedValue(itemValue);
+                  }}>
+                  {renderProductList()}
+                </Picker>
+              </View>
             )}
-          </View>
-          <View>
-            <CustomInput
-              style={globalStyle.customInput}
-              value={city}
-              onChangeText={text => setCity(text)}
-              placeholder={'City'}
-            />
-            {cityE.length > 0 && setCity.length === 0 && (
-              <Text style={styles.error}>{setCityE}</Text>
+            <View>
+              <CustomInput
+                style={globalStyle.customInput}
+                value={pincode}
+                onChangeText={text => setPincode(text)}
+                placeholder={'Pincode'}
+                keyboardType="number-pad"
+              />
+              {pincodeE.length > 0 && pincode.length === 0 && (
+                <Text style={styles.error}>{pincodeE}</Text>
+              )}
+            </View>
+            <View>
+              <CustomInput
+                style={globalStyle.customInput}
+                value={state}
+                onChangeText={text => setState(text)}
+                placeholder={'State'}
+              />
+              {stateE.length > 0 && state.length === 0 && (
+                <Text style={styles.error}>{stateE}</Text>
+              )}
+            </View>
+            <View>
+              <CustomInput
+                style={globalStyle.customInput}
+                value={city}
+                onChangeText={text => setCity(text)}
+                placeholder={'City'}
+              />
+              {cityE.length > 0 && city.length === 0 && (
+                <Text style={styles.error}>{cityE}</Text>
+              )}
+            </View>
+            <View>
+              <CustomInput
+                style={globalStyle.customInput}
+                value={nPassword}
+                onChangeText={text => setNpassword(text)}
+                placeholder={'New Password'}
+                blurOnSubmit={false}
+                secureTextEntry={true}
+              />
+              {nPasswordE.length > 0 && nPassword.length === 0 && (
+                <Text style={styles.error}>{nPasswordE}</Text>
+              )}
+            </View>
+            <View>
+              <CustomInput
+                style={globalStyle.customInput}
+                value={cPassword}
+                onChangeText={text => setCpassword(text)}
+                placeholder={'Confirm Password'}
+                blurOnSubmit={false}
+                secureTextEntry={true}
+              />
+              {cPasswordE.length > 0 && cPassword.length === 0 && (
+                <Text style={styles.error}>{cPasswordE}</Text>
+              )}
+            </View>
+            {isLoading && (
+              <ActivityIndicator
+                size={30}
+                color="#663297"
+                style={{marginTop: 20}}
+              />
             )}
-          </View>
-          <View>
-            <CustomInput
-              style={globalStyle.customInput}
-              value={nPassword}
-              onChangeText={text => setNpassword(text)}
-              placeholder={'New Password'}
-              
-              blurOnSubmit={false}
-            />
-          </View>
-          <View style={{ marginBottom: 20}}>
-            <CustomInput
-              style={globalStyle.customInput}
-              value={cPassword}
-              onChangeText={text => setCpassword(text)}
-              placeholder={'Confirm Password'}
-              
-              blurOnSubmit={false}
-            />
-          </View>
-          <View style={styles.bottomCenter}>
             <View
               style={{
                 flexDirection: 'row',
+                justifyContent: 'center',
+                marginTop: 10,
               }}>
               <CheckBox
                 value={isSelected}
                 onValueChange={setSelection}
                 style={styles.checkbox}
+                onChange={() => onPrivacyHandler()}
               />
               <Text style={styles.label}>
                 I accept the Terms of Use & Privacy policy
               </Text>
             </View>
 
-            <TouchableOpacity onPress={() => handleSubmit()}>
+            {/* <TouchableOpacity onPress={() => handleSubmit()}>
               <Image
                 style={styles.signIn}
                 source={require('../Constants/Images/signup.png')}
               />
-            </TouchableOpacity>
-
+            </TouchableOpacity> */}
+            <View>
+              <TouchableOpacity onPress={() => handleSubmit()}>
+                <Button title="Sign Up" />
+              </TouchableOpacity>
+            </View>
             <View
               style={{
                 width: '100%',
                 flexDirection: 'row',
+                justifyContent: 'center',
+                marginTop: 15,
               }}>
-              <View style={styles.bottomContent1}>
-                <Text style={styles.accountText}>Already account ?</Text>
-              </View>
-              <View style={styles.bottomContent2}>
+              <View style={{flexDirection: 'row'}}>
+                <Text style={styles.accountText}>
+                  Already have an account ?
+                </Text>
                 <Text
                   style={styles.signUpText}
                   onPress={() => navigation.navigate('Login')}>
@@ -340,15 +429,27 @@ export default function Signup({route , navigation}) {
                 </Text>
               </View>
             </View>
-          </View>
-          
-      </ScrollView>
-      </KeyboardAvoidingView>
+            <Text style={styles.welcome}></Text>
+            <Text style={styles.welcome}></Text>
+            <Text style={styles.welcome}></Text>
+            <Text style={styles.welcome}></Text>
+          </KeyboardAwareScrollView>
+        </View>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  welcome: {
+    flex: 1,
+    margin: 20,
+    backgroundColor: 'white',
+    margin: 10,
+    textAlign: 'center',
+    fontSize: 20,
+    paddingTop: 70,
+  },
   error: {
     marginLeft: 15, 
     color: 'red'},
@@ -444,5 +545,15 @@ const styles = StyleSheet.create({
     color: '#663297',
     fontSize: 18,
     fontFamily:'Montserrat'
+  },
+  modal: {
+    backgroundColor: '#fff',
+    flex: 1,
+    marginRight: 10,
+    marginLeft: 10,
+    marginTop: 80,
+    height: 450,
+    marginBottom: 80,
+    borderRadius: 30
   },
 })

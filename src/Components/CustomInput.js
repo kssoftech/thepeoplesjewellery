@@ -13,7 +13,6 @@ export default function CustomInput(props) {
         secureTextEntry={props.secureTextEntry}
         placeholderTextColor="#666666"
         blurOnSubmit={props.blurOnSubmit}
-         
       />
     </View>
   )
