@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View , SafeAreaView , ActivityIndicator ,TouchableOpacity 
-  ,Alert , Image , BackHandler , Modal, TextInput, ScrollView , ImageBackground} from 'react-native'
+  ,Alert , Image , BackHandler , Modal, TextInput, Keyboard , ImageBackground} from 'react-native'
 import React , {useState , useEffect , useCallback , useRef } from 'react'
 import Title from '../Components/Title.js'
 import CustomInput from '../Components/CustomInput.js'
@@ -26,6 +26,10 @@ export default function Login({navigation}) {
   const [otpModal , setOtpModal] = useState(false);
   const [otpLoading , setOtpLoading] = useState(false);
   const [signInLoading , setSignInLoading] = useState(false);
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const [isMessageVisible ,setIsMessageVisible] = useState(false)
+  const [message , setMessage ] = useState("");
+  const [validMessage , isValidMessage] = useState(false)
 
   useFocusEffect(
     useCallback(() => {
@@ -46,6 +50,27 @@ export default function Login({navigation}) {
     }, [])
   );
 
+  // useEffect(() => {
+  //   const keyboardDidShowListener = Keyboard.addListener(
+  //     'keyboardDidShow',
+  //     () => {
+  //       setKeyboardVisible(true); // or some other action
+  //       console.log("VISIBLE")
+  //     }
+  //   );
+  //   const keyboardDidHideListener = Keyboard.addListener(
+  //     'keyboardDidHide',
+  //     () => {
+  //       setKeyboardVisible(false); // or some other action
+  //       console.log("INVISIBLE")
+  //     }
+  //   );
+
+  //   return () => {
+  //     keyboardDidHideListener.remove();
+  //     keyboardDidShowListener.remove();
+  //   };
+  // }, []);
 
   const handleValidEmail = text => {
     setSelection(false)
@@ -90,6 +115,7 @@ export default function Login({navigation}) {
   }
 
   const otpSend = async () =>{
+    isValidMessage(false)
     setLoading(true)
       try {
         const response = await fetch(`https://mchi.org.in/TPJ/api/customerSigninOTP.php?actionName=LOGINOTP&emailId=${email}`);
@@ -99,10 +125,12 @@ export default function Login({navigation}) {
         setOTPResult(json?.result)
         if ( json?.status == false) {
           console.log("FAIL RESULT", json)
-          console.log(Alert.alert(json?.message))
+          //console.log(Alert.alert(json?.message))
         } else {
           setModalVisible(true)
           setOtpModal(true)
+          setIsMessageVisible(true)
+          isValidMessage(true)
         }
 
       } catch (error) {
@@ -130,13 +158,15 @@ export default function Login({navigation}) {
     try {
       const response = await fetch(`https://mchi.org.in/TPJ/api/customerSigninOTP_verification.php?actionName=VERIOTP&otp=${pin}&Id=${Id[0]}`);
       const json = await response.json();
-      //console.log(Alert.alert(json?.message))
+      console.log((json))
       if ( json?.status == true) {
         //console.log(Alert.alert(json?.message))
         setOtpModal(false)
         setVerifySuccessfull(true)
+        setModalVisible(true)
       } else {
         setModalVisible(true)
+        setMessage(json.message)
       }
 
     } catch (error) {
@@ -150,12 +180,18 @@ export default function Login({navigation}) {
   const forgotHandler = () => {
     navigation.navigate('ForgotPassword')
   }
+
+  const resendOTPHandler = () =>{
+    setIsMessageVisible(false);
+    isValidMessage(false)
+    otpSend();
+  }
   return (
     <SafeAreaView
       style={
         !modalVisible
           ? {flex: 1, backgroundColor: 'white'}
-          : {flex: 1, backgroundColor: '#131212'}
+          : {flex: 1, backgroundColor: '#131212', opacity: 0.5}
       }>
       <View style={{marginTop: '30%'}}>
         <Image
@@ -194,7 +230,13 @@ export default function Login({navigation}) {
             <Text style={styles.error}>{cPasswordE}</Text>
           )}
         </View>
-        <Text style={styles.forgotPassword} onPress={()=>{forgotHandler()}}>Forgot Your Password?</Text>
+        <Text
+          style={styles.forgotPassword}
+          onPress={() => {
+            forgotHandler();
+          }}>
+          Forgot Your Password?
+        </Text>
 
         <Modal
           transparent={true}
@@ -219,10 +261,20 @@ export default function Login({navigation}) {
                     source={require('../Constants/Images/mobileIcon.png')}
                   />
                   <Title style={styles.title} label="OTP Verification" />
-                  <Text
-                    style={{alignSelf: 'center', fontSize: 15, color: 'green'}}>
-                    OTP is sent to your register emailId
-                  </Text>
+                  {isMessageVisible && (
+                    <Text
+                      style={{
+                        alignSelf: 'center',
+                        fontSize: 15,
+                        color: 'green',
+                      }}>
+                      OTP is sent to your register emailId
+                    </Text>
+                  )}
+                  {!isMessageVisible && (
+                    <ActivityIndicator color="#663297" style={styles.loading} />
+                  )}
+
                   <Text
                     style={{alignSelf: 'center', fontSize: 15, marginTop: 10}}>
                     Please enter OTP code
@@ -239,11 +291,23 @@ export default function Login({navigation}) {
                       }}
                     />
                   </View>
+                  {validMessage && (
+                    <Text style={{alignSelf: 'center', color: 'red'}}>
+                      {message}
+                    </Text>
+                  )}
+
                   <Text style={styles.receiveOTP}>
                     Didn't receive OTP code ?
                   </Text>
-                  <Text style={styles.resendOTP}>Resend Code</Text>
-                  {otpLoading && <ActivityIndicator color="#663297" style={styles.loading}/>}
+                  <Text
+                    style={styles.resendOTP}
+                    onPress={() => resendOTPHandler()}>
+                    Resend Code
+                  </Text>
+                  {otpLoading && (
+                    <ActivityIndicator color="#663297" style={styles.loading} />
+                  )}
                   <TouchableOpacity onPress={() => submitOTPHandler()}>
                     <Image
                       style={styles.signIn}
@@ -280,16 +344,15 @@ export default function Login({navigation}) {
                         alignSelf: 'center',
                         fontSize: 20,
                       }}>
-                      
                       Verification Successfully
                     </Text>
-                    <TouchableOpacity onPress={()=> navigation.navigate('Home')}>
-                    <Image
-                      style={{marginTop: 20, alignSelf: 'center'}}
-                      source={require('../Constants/Images/ok.png')}
-                    />
+                    <TouchableOpacity
+                      onPress={() => navigation.navigate('Home')}>
+                      <Image
+                        style={{marginTop: 20, alignSelf: 'center'}}
+                        source={require('../Constants/Images/ok.png')}
+                      />
                     </TouchableOpacity>
-                    
                   </View>
                 </View>
               )}
@@ -309,14 +372,16 @@ export default function Login({navigation}) {
             <ActivityIndicator color="#663297" style={styles.loading} />
           )}
         </View>
-        <View> 
+        <View>
           <TouchableOpacity onPress={() => handleSubmit()}>
-          <Button title="Sign In"/>
+            <Button title="Sign In" />
           </TouchableOpacity>
         </View>
-        
       </View>
-      {signInLoading && <ActivityIndicator size={30} color="#663297" style={{ marginTop: 20}}/>}
+      {signInLoading && (
+        <ActivityIndicator size={30} color="#663297" style={{marginTop: 20}} />
+      )}
+
       <View style={styles.bottomCenter}>
         <View style={styles.bottomContent1}>
           <Text style={styles.accountText}>Don't have an account ?</Text>
@@ -325,7 +390,7 @@ export default function Login({navigation}) {
           <Text
             style={styles.signUpText}
             onPress={() => navigation.navigate('UserRole')}>
-             Sign Up
+            Sign Up
           </Text>
         </View>
       </View>
@@ -374,7 +439,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
    alignSelf: 'center',
    width: '100%',
-   backgroundColor: 'yellow',
    borderRadius: 10
   },
   linearGradient: {
@@ -416,9 +480,9 @@ const styles = StyleSheet.create({
     marginRight: 10,
     marginLeft: 10,
     marginTop: 80,
-    height: 450,
     marginBottom: 80,
-    borderRadius: 30
+    borderRadius: 30,
+    padding: 20
   },
   modal2:{
     backgroundColor: '#fff',
@@ -470,11 +534,11 @@ const styles = StyleSheet.create({
   }, 
   otpView: {
     marginTop: 15,
-    width: '60%',
+    width: '80%',
     height: 50,
     color: 'black',
     alignSelf:'center',
-    fontFamily:'Montserrat'
+    fontFamily:'Montserrat',
   },
   underlineStyleBase: {
     width: 40,

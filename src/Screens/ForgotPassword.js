@@ -7,6 +7,7 @@ const globalStyle = require('../Constants/Styles/Style.js')
 import OTPInputView from '@twotalltotems/react-native-otp-input';
 import CloseIcon from 'react-native-vector-icons/AntDesign';
 import Title from '../Components/Title'
+import Button from '../Components/Button'
 
 const ForgotPassword = ({navigation}) => {
 const [email , setEmail ] = useState("");
@@ -19,9 +20,13 @@ const [verifySuccessfull , setVerifySuccessfull] = useState(false);
 const [otpModal , setOtpModal] = useState(false);
 const [otpLoading , setOtpLoading] = useState(false);
 const [signInLoading , setSignInLoading] = useState(false);
+const [isMessageVisible ,setIsMessageVisible] = useState(false)
+const [message , setMessage ] = useState("");
+const [validMessage , isValidMessage] = useState(false)
 
 
 const sendButtonHandler = () =>{
+  isValidMessage(false)
     if (email.length === 0) {
       setEmailE('enter email address');
     } else{
@@ -29,7 +34,15 @@ const sendButtonHandler = () =>{
     }  
 }
 
+const resendOTPHandler = () =>{
+  setIsMessageVisible(false);
+  isValidMessage(false)
+  forgotAPI();
+}
+
 const forgotAPI = async () =>{
+   // isMessageVisible(false)
+   setIsMessageVisible(false)
     setLoading(true)
     try {
       const response = await fetch(`https://mchi.org.in/TPJ/api/customerSigninOTP.php?actionName=LOGINOTP&emailId=${email}`);
@@ -42,6 +55,7 @@ const forgotAPI = async () =>{
         console.log(Alert.alert(json?.message))
       } else {
          setModalVisible(true)
+         setIsMessageVisible(true)
       }
 
     } catch (error) {
@@ -52,6 +66,7 @@ const forgotAPI = async () =>{
 }
 
 const submitOTPHandler = async () =>{
+  isValidMessage(false)
     const Id = otpResult?.map((i , index) =>{
         return i?.Id;
       })
@@ -65,7 +80,10 @@ const submitOTPHandler = async () =>{
         if ( json?.status == true) {
           navigation.navigate('NewPassword' , {userDetails : json?.result})
         } else {
-            console.log(Alert.alert(json?.message))
+            //console.log(Alert.alert(json?.message))
+            setModalVisible(true)
+            setMessage(json.message)
+            isValidMessage(true)
         }
   
       } catch (error) {
@@ -78,11 +96,12 @@ const submitOTPHandler = async () =>{
 
 
 return (
-  <SafeAreaView style={
-    !modalVisible
-      ? {flex: 1, backgroundColor: 'white'}
-      : {flex: 1, backgroundColor: '#131212'}
-  }>
+  <SafeAreaView
+    style={
+      !modalVisible
+        ? {flex: 1, backgroundColor: 'white'}
+        : {flex: 1, backgroundColor: '#131212' , opacity: 0.5}
+    }>
     <KeyboardAwareScrollView>
       <View style={styles.leftView}>
         <LeftArrowIcon
@@ -106,55 +125,65 @@ return (
           backdropOpacity={1}>
           {modalVisible && (
             <KeyboardAwareScrollView style={{alignSelf: 'center'}}>
-                <View style={styles.modal}>
-                  <CloseIcon
-                    name="close"
-                    size={30}
-                    style={styles.closeIcon}
-                    onPress={() => {
-                      setModalVisible(false);
-                      setSelection(false);
-                    }}
-                  />
-                  <Image
-                    style={{alignSelf: 'center'}}
-                    source={require('../Constants/Images/mobileIcon.png')}
-                  />
-                  <Title style={styles.title} label="OTP Verification" />
-                  <Text
-                    style={{alignSelf: 'center', fontSize: 15, color: 'green'}}>
-                    OTP is sent to your register emailId
-                  </Text>
-                  <Text
-                    style={{alignSelf: 'center', fontSize: 15, marginTop: 10}}>
-                    Please enter OTP code
-                  </Text>
-                  <View>
-                    <OTPInputView
-                      style={styles.otpView}
-                      pinCount={4}
-                      autoFocusOnLoad
-                      codeInputFieldStyle={styles.underlineStyleBase}
-                      codeInputHighlightStyle={styles.underlineStyleHighLighted}
-                      onCodeFilled={code => {
-                        setPin(code);
-                      }}
-                    />
-                  </View>
-                  <Text style={styles.receiveOTP}>
-                    Didn't receive OTP code ?
-                  </Text>
-                  <Text style={styles.resendOTP}>Resend Code</Text>
-                  {otpLoading && (
+              <View style={styles.modal}>
+                <CloseIcon
+                  name="close"
+                  size={30}
+                  style={styles.closeIcon}
+                  onPress={() => {
+                    setModalVisible(false);
+                  }}
+                />
+                <Image
+                  style={{alignSelf: 'center'}}
+                  source={require('../Constants/Images/mobileIcon.png')}
+                />
+                <Title style={styles.title} label="OTP Verification" />
+                {isMessageVisible && (
+                    <Text
+                      style={{
+                        alignSelf: 'center',
+                        fontSize: 15,
+                        color: 'green',
+                      }}>
+                      OTP is sent to your register emailId
+                    </Text>
+                  )}
+                {!isMessageVisible && (
                     <ActivityIndicator color="#663297" style={styles.loading} />
                   )}
+                <Text
+                  style={{alignSelf: 'center', fontSize: 15, marginTop: 10 }}>
+                  Please enter OTP code
+                </Text>
+                <View>
+                  <OTPInputView
+                    style={styles.otpView}
+                    pinCount={4}
+                    autoFocusOnLoad
+                    codeInputFieldStyle={styles.underlineStyleBase}
+                    codeInputHighlightStyle={styles.underlineStyleHighLighted}
+                    onCodeFilled={code => {
+                      setPin(code);
+                    }}
+                  />
+                </View>
+                {validMessage && (
+                    <Text style={{alignSelf: 'center', color: 'red'}}>
+                      {message}
+                    </Text>
+                  )}
+                <Text style={styles.receiveOTP}>Didn't receive OTP code ?</Text>
+                <Text style={styles.resendOTP} onPress={() => resendOTPHandler()}>Resend Code</Text>
+                {otpLoading && (
+                  <ActivityIndicator color="#663297" style={styles.loading} />
+                )}
+                <View >
                   <TouchableOpacity onPress={() => submitOTPHandler()}>
-                    <Image
-                      style={{marginTop: 20}}
-                      source={require('../Constants/Images/verify.png')}
-                    />
+                    <Button title="Verify & Proceed" />
                   </TouchableOpacity>
                 </View>
+              </View>
             </KeyboardAwareScrollView>
           )}
         </Modal>
@@ -188,12 +217,11 @@ return (
         {isLoading && (
           <ActivityIndicator color="#663297" style={{alignSelf: 'center'}} />
         )}
-        <TouchableOpacity onPress={() => sendButtonHandler()}>
-          <Image
-            style={{marginTop: 10, width: '100%'}}
-            source={require('../Constants/Images/send.png')}
-          />
-        </TouchableOpacity>
+        <View>
+          <TouchableOpacity onPress={() => sendButtonHandler()}>
+            <Button title="Send" />
+          </TouchableOpacity>
+        </View>
       </View>
     </KeyboardAwareScrollView>
   </SafeAreaView>
@@ -238,13 +266,13 @@ const styles = StyleSheet.create({
     marginRight: 10,
     marginLeft: 10,
     marginTop: 80,
-    height: 450,
     marginBottom: 80,
     borderRadius: 30,
+    padding: 20,
+   
   },
   closeIcon: {
     alignSelf: 'flex-end',
-    margin: 10,
   },
   otpBox: {
     alignSelf: 'center',
@@ -278,8 +306,7 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   otpView: {
-    marginTop: 15,
-    width: '60%',
+    width: '80%',
     height: 50,
     color: 'black',
     alignSelf: 'center',

@@ -42,6 +42,7 @@ export default function Signup({route , navigation}) {
   const [selectedValue, setSelectedValue] = useState('');
   const [productDetails , setproductDetails] = useState([]);
   const [modalVisible , setModalVisible] = useState(false);
+  const [isLoadingIndicator , setIsLoadingIndicator] = useState(true)
 
   useFocusEffect(
     React.useCallback(() => {
@@ -80,7 +81,7 @@ export default function Signup({route , navigation}) {
 
   useEffect(()=>{
    getCompanyTypes()
-  }, [])
+  }, [userRole])
 
   const getCompanyTypes = async () =>{
     try {
@@ -88,10 +89,10 @@ export default function Signup({route , navigation}) {
       const json = await response.json();
       console.log(json.result)
       setproductDetails(json?.result);
+      setIsLoadingIndicator(false);
     } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
+      Alert.alert(error.message);
+      setIsLoadingIndicator(false);
     }
   }
 
@@ -256,7 +257,7 @@ export default function Signup({route , navigation}) {
                 <Text style={styles.error}>{whatsAppNOE}</Text>
               )}
             </View>
-            {
+            {/* {
               <Modal
                 transparent={true}
                 visible={modalVisible}
@@ -267,7 +268,7 @@ export default function Signup({route , navigation}) {
                 
                 </View>}
               </Modal>
-            }
+            } */}
             <View>
               <CustomInput
                 style={globalStyle.customInput}
@@ -306,6 +307,13 @@ export default function Signup({route , navigation}) {
                   shadowOffset: {width: 1, height: 1},
                   shadowOpacity: 0.2,
                 }}>
+                {isLoadingIndicator && (
+                  <ActivityIndicator
+                    size={30}
+                    color="#663297"
+                    style={{marginTop: 40}}
+                  />
+                )}
                 <Picker
                   selectedValue={selectedValue}
                   //style={{ }}

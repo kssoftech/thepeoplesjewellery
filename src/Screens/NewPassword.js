@@ -10,6 +10,7 @@ import { StyleSheet, Text, View , SafeAreaView , ActivityIndicator ,TouchableOpa
   import CloseIcon from 'react-native-vector-icons/AntDesign';
   import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
   import OTPInputView from '@twotalltotems/react-native-otp-input';
+import Button from '../Components/Button.js';
 
 const NewPassword = ({route , navigation}) => {
     const { userDetails } =  route.params;
@@ -45,20 +46,19 @@ const NewPassword = ({route , navigation}) => {
     );
 
   const handleSubmit = () => {  
-    if ( nPassword.length === 0){
-        setNpasswordE("required")
+    if ( nPassword.length === 0 && cPassword.length === 0 ){
+        setNpasswordE("enter password")
+        setCpasswordE("enter confirm password")
       }
       else if ( cPassword.length === 0){
-        setCpasswordE("required")
+        setCpasswordE("enter confirm password")
       } 
       else {
         if (nPassword !== cPassword ) {
-          setNpasswordE("New Password and Confirm Password are not same.")
+          
           setCpasswordE("New Password and Confirm Password are not same.")
         } else {
             console.log("USERDetails", userDetails)
-            let Id = "";
-            let token = "";
             const id = userDetails.map((i , index) =>{
                return i?.Id
             })
@@ -72,6 +72,7 @@ const NewPassword = ({route , navigation}) => {
       } 
   }
 
+
   const resetPasswordAPI = async (id , token ) =>{
     setLoading(true)
     try {
@@ -82,7 +83,7 @@ const NewPassword = ({route , navigation}) => {
         console.log("FAIL RESULT", json)
         console.log(Alert.alert(json?.message))
       } else {
-        navigation.navigate('Login')
+        setModalVisible(true)
       }
 
     } catch (error) {
@@ -93,7 +94,11 @@ const NewPassword = ({route , navigation}) => {
   }
 
   return (
-    <SafeAreaView style={{flex: 1, backgroundColor: 'white'}}>
+    <SafeAreaView  style={
+      !modalVisible
+        ? {flex: 1, backgroundColor: 'white'}
+        : {flex: 1, backgroundColor: '#131212', opacity: 0.5}
+    }>
       <View style={{marginTop: '30%'}}>
         <KeyboardAwareScrollView>
           <Image
@@ -138,22 +143,70 @@ const NewPassword = ({route , navigation}) => {
               <Text style={styles.error}>{cPasswordE}</Text>
             )}
           </View>
+
           {isLoading && (
             <ActivityIndicator
               size={30}
               color="#663297"
-              style={{marginTop: 10 , marginBottom: 10}}
+              style={{marginTop: 10, marginBottom: 10}}
             />
           )}
-          <TouchableOpacity onPress={() => handleSubmit()}>
-          <Image
-             style={{
-                width: '100%',
-                height: 50,
-              }}
-            source={require('../Constants/Images/resetPassword.png')}
-          />
-        </TouchableOpacity>
+
+          <View>
+            <TouchableOpacity onPress={() => handleSubmit()}>
+              <Button title="Reset Password" />
+            </TouchableOpacity>
+          </View>
+          <Modal
+           transparent={true}
+           visible={modalVisible}
+           backdropColor={'red'}
+           backdropOpacity={1}>
+           {modalVisible && (
+             <KeyboardAwareScrollView style={{alignSelf: 'center'}}>
+                 <View style={styles.modal}>
+                   <View>
+                     <ImageBackground
+                       style={{
+                         position: 'absolute',
+                         width: 55,
+                         height: 55,
+                         alignSelf: 'center',
+                       }}
+                       source={require('../Constants/Images/done.png')}>
+                       <Image
+                         style={{
+                           alignSelf: 'center',
+                           justifyContent: 'center',
+                           alignItems: 'center',
+                           marginTop: 15,
+                         }}
+                         source={require('../Constants/Images/done2.png')}
+                       />
+                     </ImageBackground>
+                     <Text
+                       style={{
+                         marginTop: 60,
+                         color: 'green',
+                         alignSelf: 'center',
+                         fontSize: 20,
+                       }}>
+                       Password Updated Successfully.
+                     </Text>
+                     <TouchableOpacity
+                       onPress={() => navigation.navigate('Login')}
+                       >
+                       <Image
+                         style={{marginTop: 20, alignSelf: 'center'}}
+                         source={require('../Constants/Images/ok.png')}
+                       />
+                     </TouchableOpacity>
+                   </View>
+                 </View>
+         
+             </KeyboardAwareScrollView>
+           )}
+         </Modal>
         </KeyboardAwareScrollView>
       </View>
     </SafeAreaView>
@@ -169,5 +222,20 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         fontSize: 25,
         fontFamily: 'Montserrat',
+      },
+      error: {
+        marginLeft: 15,
+        color: 'red',
+      },
+      modal: {
+        backgroundColor: '#fff',
+        flex: 1,
+        marginRight: 10,
+        marginLeft: 10,
+        marginTop: '50%',
+        borderRadius: 30,
+        padding: 20, 
+        alignContent: 'center'
+
       },
 })
