@@ -3,7 +3,7 @@ import React from 'react'
 
 export default function Button(props) {
   return (
-    <View style={{ height: 45 , margin: 10 , alignItems:'center'}}>
+    <View style={{ height: 45 , margin: 10 , alignItems:'center' ,borderRadius: 10}}>
       <ImageBackground
         style={styles.imageBackground}
         source={require('../Constants/Images/btnBackground.png')}>

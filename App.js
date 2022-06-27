@@ -10,7 +10,7 @@ import React from 'react';
 import {
   StyleSheet,
 } from 'react-native';
-
+import 'react-native-gesture-handler';
 import Splash from './src/Screens/Splash';
 import Login from './src/Screens/Login';
 import Signup from './src/Screens/Signup';
@@ -23,6 +23,7 @@ import Welcome from './src/Screens/Welcome';
 import ForgotPassword from './src/Screens/ForgotPassword';
 import NewPassword from './src/Screens/NewPassword';
 import AccountVerification from './src/Screens/AccountVerification';
+import TabNavigator from './src/Navigations/TabNavigator';
 
 
 const Stack =  createNativeStackNavigator();
@@ -106,7 +107,7 @@ const App = () => {
         />
         <Stack.Screen
           name='Home'
-          component={Home}
+          component={TabNavigator}
           options={{ headerShown: false, gestureEnabled: false}}
         />
 

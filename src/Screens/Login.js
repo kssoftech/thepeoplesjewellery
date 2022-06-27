@@ -104,7 +104,7 @@ export default function Login({navigation}) {
         console.log("FAIL RESULT", json)
         console.log(Alert.alert(json?.message))
       } else {
-        navigation.navigate('Verify' , {result : json.result})
+        navigation.navigate('Home' , {result : json.result})
       }
 
     } catch (error) {
