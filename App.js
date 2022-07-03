@@ -10,7 +10,7 @@ import React from 'react';
 import {
   StyleSheet,
 } from 'react-native';
-import 'react-native-gesture-handler';
+
 import Splash from './src/Screens/Splash';
 import Login from './src/Screens/Login';
 import Signup from './src/Screens/Signup';
@@ -24,37 +24,13 @@ import ForgotPassword from './src/Screens/ForgotPassword';
 import NewPassword from './src/Screens/NewPassword';
 import AccountVerification from './src/Screens/AccountVerification';
 import TabNavigator from './src/Navigations/TabNavigator';
+import Wallet from './src/Screens/Wallet';
 
 
 const Stack =  createNativeStackNavigator();
-const SlideFromTop = () => {
-  const progress = Animated.add(
-      props.current.progress.interpolate({
-          inputRange: [0, 1],
-          outputRange: [
-            -props.layouts.screen.height,
-            0,
-            -props.layouts.screen.height,
-          ],
-          extrapolate: 'clamp',
-      }),
-      props.next
-          ? props.next.progress.interpolate({
-              inputRange: [0, 1],
-              outputRange: [
-                -props.layouts.screen.height,
-                0,
-                -props.layouts.screen.height,
-              ],
-              extrapolate: 'clamp',
-          })
-          : 0
-  );
-}
-
 const App = () => {
   return (
-    <NavigationContainer >
+    <NavigationContainer>
       <Stack.Navigator initialRouteName='PreSplash'>
         <Stack.Screen
           name='PreSplash'
@@ -111,8 +87,10 @@ const App = () => {
           options={{ headerShown: false, gestureEnabled: false}}
         />
 
-      </Stack.Navigator>  
+      </Stack.Navigator>
     </NavigationContainer>
+
+
   );
 };
 

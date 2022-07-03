@@ -29,7 +29,7 @@ useEffect(() => {
 useEffect(()=>{
     SplashScreen.hide()
     setTimeout(() => {
-      navigation.navigate('Home')
+      navigation.navigate('Login')
     }, 3500);
 },[])
 

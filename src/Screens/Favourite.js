@@ -3,7 +3,7 @@ import React from 'react'
 
 const Favourite = () => {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' , backgroundColor: 'pink'}}>
       <Text>Favourite</Text>
     </View>
   )

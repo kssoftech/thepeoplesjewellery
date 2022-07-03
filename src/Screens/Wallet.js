@@ -3,7 +3,7 @@ import React from 'react'
 
 export default function Wallet() {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'red' }}>
       <Text>Wallet</Text>
     </View>
   )

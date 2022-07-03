@@ -4,6 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 export default function AccountVerification({route , navigation}) {
     const { result } = route?.params;
     const [ loading , setLoading] = useState(false)
+    const [ data , setData ] = useState([]);
 
     useFocusEffect(
         useCallback(() => {
@@ -29,21 +30,20 @@ export default function AccountVerification({route , navigation}) {
         const Id = result.map((i) =>{
             return i.Id;
         })
-        const token = result.map((i) =>{
-            return i.token;
-        })
-        console.log("t", Id[0] , token[0])
-        getAccountStatus(Id[0] , token[0]);
+        console.log("t", Id[0])
+        getAccountStatus(Id[0]);
     },[])  
 
-    const getAccountStatus = async (Id , token) =>{
-        console.log("IIIIIII",JSON.stringify(Id) , JSON.stringify(token))
+    const getAccountStatus = async (Id ) =>{
+        console.log("IIIIIII",JSON.stringify(Id))
         setLoading(true)
         try {
-          const response = await fetch(`https://mchi.org.in/TPJ/api/accountUnderReview.php?actionName=CHECK&Id=${(Id)}&token=${(token)}`);
+          const response = await fetch(`https://mchi.org.in/TPJ/api/accountUnderReview.php?actionName=CHECK&Id=${(Id)}`);
           const json = await response.json();
           console.log("SUCCESS RESULT 22",json)
+          setData(json?.result)
           console.log(Alert.alert(json?.message))
+
         //   if ( json?.status == false) {
         //     console.log("FAIL RESULT", json)
         //     console.log(Alert.alert(json?.message))
@@ -62,12 +62,12 @@ export default function AccountVerification({route , navigation}) {
    const name = result.map((item)=>{
        return item?.firstName;
     })
-    const status = result.map((item)=>{
-        return item?.firstName;
-     }) 
-   const welcome_message = result.map((item)=>{
-    return item?.welcome_message;
+
+   const welcome_message = data?.map((item)=>{
+    return item?.messageDescription;
     }) 
+
+    console.log("WMMMM", JSON.stringify(welcome_message))
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: 'white'}}>
       <View style={{marginTop: '30%'}}>
@@ -83,7 +83,7 @@ export default function AccountVerification({route , navigation}) {
           <Text style={styles.hi}>Hi , {name}</Text>
         )}
         <View style={styles.welcomeView}>
-          <Text style={{fontSize: 18}}>{welcome_message}</Text>
+          <Text style={{fontSize: 18}}>{JSON.stringify(welcome_message)}</Text>
           <Image
             style={styles.aboutUs}
             source={require('../Constants/Images/aboutUs.png')}

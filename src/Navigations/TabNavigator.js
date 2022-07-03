@@ -1,5 +1,5 @@
-import * as React from 'react';
-import {Text, View, Image} from 'react-native';
+import  React , { useCallback} from 'react';
+import {Text, View, Image , BackHandler} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {
@@ -12,12 +12,11 @@ const Tab = createBottomTabNavigator();
 import Favourite from '../Screens/Favourite';
 import Cart from '../Screens/Cart';
 import Search from '../Screens/Search';
-import {createDrawerNavigator} from '@react-navigation/drawer';
-const Drawer = createDrawerNavigator();
+import { useFocusEffect } from '@react-navigation/native';
 
 function HomeScreen() {
   return (
-    <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+    <View style={{flex: 1, justifyContent: 'center', alignItems: 'center' , backgroundColor: 'yellow'}}>
       <Text>Home!</Text>
     </View>
   );
@@ -32,6 +31,25 @@ function SettingsScreen() {
 }
 
 const TabNavigator = () => {
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        // Return true to stop default back navigaton
+        // Return false to keep default back navigaton
+        return true;
+      };
+   
+      BackHandler.addEventListener(
+        'hardwareBackPress', onBackPress
+      );
+   
+      return () =>
+        BackHandler.removeEventListener(
+          'hardwareBackPress', onBackPress
+        );
+    }, [])
+  );
   return (
     <Tab.Navigator
       screenOptions={{
@@ -39,13 +57,15 @@ const TabNavigator = () => {
         tabBarShowLabel: false,
         tabBarStyle: {
           backgroundColor: '#663297',
+
         },
       }}>
       <Tab.Screen
-        name="Home2"
+        name="The Peoples Jewellery"
         component={HomeStack}
         options={{
-          tabBarLabel: 'Home',
+          headerShown: true,
+          
           tabBarIcon: () => (
             <Image
               source={require('../Constants/Images/homeIcon.png')}

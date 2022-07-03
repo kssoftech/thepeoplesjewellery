@@ -148,7 +148,35 @@ export default function Signup({route , navigation}) {
   const resendOTPHandler = () =>{
     setIsMessageVisible(false);
     isValidMessage(false)
-    otpSend();
+    otpSend(email);
+  }
+
+  const otpSend = async () =>{
+    console.log("EmAIL" , email)
+   // setLoading(false)
+    isValidMessage(false)
+    //setLoading(true)
+      try {
+        const response = await fetch(`https://mchi.org.in/TPJ/api/customerSigninOTP.php?actionName=LOGINOTP&emailId=${email}`);
+        const json = await response.json();
+        setSelection(false)
+        console.log("SUCCESS RESULT",json.result)
+        setOTPResult(json?.result)
+        if ( json?.status == false) {
+          console.log("FAIL RESULT", json)
+          //console.log(Alert.alert(json?.message))
+        } else {
+          setModalVisible(true)
+          setOtpModal(true)
+          setIsMessageVisible(true)
+          isValidMessage(true)
+        }
+
+      } catch (error) {
+        Alert.alert(error);
+      } finally {
+        setLoading(false);
+      }
   }
 
 
@@ -211,20 +239,6 @@ export default function Signup({route , navigation}) {
   }
 
   const SignupAPI = async () =>{
-
-    setFirstName("")
-    setLastName("")
-    setMobNo("")
-    setWhatsAppNo("")
-    setEmail("")
-    setCompanyName("")
-    setCompanyTypes("")
-    setPincode("")
-    setState("")
-    setPincode("")
-    setCity("")
-    setNpassword("")
-    setCpassword("")
     setLoading(true)
       try {
         const response = await fetch(`https://mchi.org.in/TPJ/api/customerSignup.php?token=3d30b5a19f5e1291c5e1959d00e40029&actionName=INSERT&customerType=${userRole}&firstName=${firstName}&lastName=${lastName}&mobileNo=${mobNo}&what${whatsAppNO}&companyName=${companyName}&emaiIId=${email}&companyType=${selectedValue}&pincode=${pincode}&state=${state}&city=${city}&confirmPassword=${cPassword}&fcmToken=0`);
@@ -247,6 +261,20 @@ export default function Signup({route , navigation}) {
       } finally {
         setLoading(false);
       } 
+
+      setFirstName("")
+      setLastName("")
+      setMobNo("")
+      setWhatsAppNo("")
+      setEmail("")
+      setCompanyName("")
+      setCompanyTypes("")
+      setPincode("")
+      setState("")
+      setPincode("")
+      setCity("")
+      setNpassword("")
+      setCpassword("")
   }
 
   return (
